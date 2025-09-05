@@ -1,0 +1,65 @@
+/* In your main CSS file, e.g., src/index.css */
+
+.rich-text-editor-content ul {
+  list-style-type: disc; /* This makes the bullets appear */
+  padding-left: 2em;   /* This adds space for the bullets to be visible */
+}
+
+.rich-text-editor-content ol {
+  list-style-type: decimal; /* This makes the numbers appear for ordered lists */
+  padding-left: 2em;   /* This adds space for the numbers to be visible */
+}
+
+/* Optional: Add some margin for better spacing between list items */
+.rich-text-editor-content li {
+    margin-bottom: 0.25em; 
+}
+
+/* Optional: Styling for nested lists for visual distinction */
+.rich-text-editor-content ul ul {
+  list-style-type: circle; /* Smaller, hollow circles for nested lists */
+}
+
+.rich-text-editor-content ul ul ul {
+  list-style-type: square; /* Squares for further nested lists */
+}
+
+
+/* Add this to your main CSS file (e.g., index.css, global.css) */
+
+.emoji-picker-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 50; /* Higher z-index to ensure it appears above other elements */
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.emoji-button {
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.125rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.emoji-button:hover {
+  background-color: #f3f4f6;
+}
