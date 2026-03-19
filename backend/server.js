@@ -36,7 +36,6 @@ app.use('/api/notifications', notificationRoutes);
 mongoose.connect(process.env.MONGO_URL)
   .then(() => app.listen(process.env.PORT || 5000, () => {
     console.log("Server running on port 5000");
-    console.log("CORS enabled for:", ["http://localhost:5173", "http://localhost:3000"]);
     console.log("JWT_SECRET configured:", !!process.env.JWT_SECRET);
   }))
   .catch(err => console.error("MongoDB connection error:", err));
