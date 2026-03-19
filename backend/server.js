@@ -15,13 +15,10 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-// Fixed CORS configuration
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000"], // Add your frontend URLs
-  credentials: true, // This is crucial for cookies
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+  origin: "https://stack-it-a-minimal-qn-a-forum-platf-umber.vercel.app",
+  credentials: true
+}))
 
 // Add this middleware to log requests and cookies
 app.use((req, res, next) => {
