@@ -40,7 +40,7 @@ export default function Login() {
     if (Object.keys(errs).length === 0) {
       setSubmitting(true);
       try {
-        const res = await fetch("http://localhost:5000/api/auth/login", {
+        const res = await fetch("https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

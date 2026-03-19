@@ -63,7 +63,7 @@ export default function QuestionPage() {
         }
 
         // Fetch question with better error handling
-        const questionUrl = `http://localhost:5000/api/questions/${questionId}`;
+        const questionUrl = `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions/${questionId}`;
   // ...existing code...
 
         const qRes = await fetch(questionUrl, {
@@ -90,7 +90,7 @@ export default function QuestionPage() {
         setQuestion(qData);
 
         // Fetch answers
-        const answersUrl = `http://localhost:5000/api/answers/${questionId}`;
+        const answersUrl = `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${questionId}`;
   // ...existing code...
 
         const aRes = await fetch(answersUrl, {
@@ -152,7 +152,7 @@ export default function QuestionPage() {
       setSubmittingAnswer(true);
   // ...existing code...
 
-      const res = await fetch(`http://localhost:5000/api/answers`, {
+      const res = await fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -198,7 +198,7 @@ export default function QuestionPage() {
       setSubmittingComments((prev) => ({ ...prev, [answerId]: true }));
   // ...existing code...
 
-      const res = await fetch(`http://localhost:5000/api/answers/${answerId}/comments`, {
+      const res = await fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -244,7 +244,7 @@ export default function QuestionPage() {
     try {
       setVoteLoading((prev) => ({ ...prev, [answerId]: true }));
 
-      const res = await fetch(`http://localhost:5000/api/answers/${answerId}/vote`, {
+      const res = await fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/vote`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -288,7 +288,7 @@ export default function QuestionPage() {
     try {
       setAcceptLoading(true);
 
-      const res = await fetch(`http://localhost:5000/api/answers/${answerId}/accept`, {
+      const res = await fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/accept`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -303,7 +303,7 @@ export default function QuestionPage() {
       }
 
       // Refresh answers to get updated acceptance status
-      const answersUrl = `http://localhost:5000/api/answers/${questionId}`;
+      const answersUrl = `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${questionId}`;
       const aRes = await fetch(answersUrl, {
         headers: {
           ...(token && { 'Authorization': `Bearer ${token}` }),

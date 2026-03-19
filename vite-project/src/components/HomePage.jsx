@@ -4,7 +4,7 @@ import { Search, Plus, Clock } from 'lucide-react';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // ✅ correct API base
+  baseURL: 'https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api', // ✅ correct API base
   withCredentials: true
 });
 
@@ -33,7 +33,7 @@ export default function HomePage() {
         console.log("🔄 Fetching questions from API...");
         setLoading(true);
 
-        const res = await axios.get('http://localhost:5000/api/questions');
+        const res = await axios.get('https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions');
 
         console.log("✅ API Response received:");
         console.log("Response status:", res.status);

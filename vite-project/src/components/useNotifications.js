@@ -11,7 +11,7 @@ export default function useNotifications(token) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:5000/api/notifications", {
+      const res = await fetch("https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/notifications", {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
@@ -39,7 +39,7 @@ export default function useNotifications(token) {
   const markAllAsRead = async () => {
     const unread = notifications.filter(n => !n.read);
     await Promise.all(unread.map(n =>
-      fetch(`http://localhost:5000/api/notifications/${n._id}/read`, {
+      fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/notifications/${n._id}/read`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

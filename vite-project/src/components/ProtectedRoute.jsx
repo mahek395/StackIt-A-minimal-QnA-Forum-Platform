@@ -10,7 +10,7 @@ const ProtectedRoute = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/profile", {
+        const res = await fetch("https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/auth/profile", {
           credentials: "include", // important for cookies
         });
 
