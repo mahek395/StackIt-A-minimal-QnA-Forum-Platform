@@ -12,12 +12,21 @@ const AppLayout = () => {
   const [showLogout, setShowLogout] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsLoggedIn(true);
-    }
-    setLoading(false);
+    const syncUser = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+        setIsLoggedIn(true);
+      } else {
+        setUser(null);
+        setIsLoggedIn(false);
+      }
+      setLoading(false);
+    };
+
+    syncUser();
+    window.addEventListener('userLogin', syncUser);
+    return () => window.removeEventListener('userLogin', syncUser);
   }, []);
 
   const handleLogout = () => {

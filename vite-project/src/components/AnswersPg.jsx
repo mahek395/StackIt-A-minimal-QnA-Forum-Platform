@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { CheckCircle, ThumbsUp, ThumbsDown, Check } from "lucide-react";
-
 import {
   MessageSquareText,
   MessageSquare,
@@ -15,8 +14,6 @@ export default function QuestionPage() {
   const { questionId } = useParams();
   const navigate = useNavigate();
 
-  // ...existing code...
-
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [newAnswer, setNewAnswer] = useState("");
@@ -29,8 +26,7 @@ export default function QuestionPage() {
   const [voteLoading, setVoteLoading] = useState({});
   const [acceptLoading, setAcceptLoading] = useState(false);
 
-  // Get current user data
-  // Get current user data from localStorage
+  // Get current user from localStorage
   const userStr = localStorage.getItem("user");
   let user = undefined;
   let currentUserId = undefined;
@@ -38,17 +34,15 @@ export default function QuestionPage() {
     user = userStr ? JSON.parse(userStr) : undefined;
     currentUserId = user?._id || user?.id;
   } catch (e) {}
-  const token = localStorage.getItem("token");
+  const isLoggedIn = !!user;
 
-  // Better user ID comparison function
   const compareUserIds = (id1, id2) => {
     if (!id1 || !id2) return false;
-    // Convert both to strings and trim whitespace for comparison
     return String(id1).trim() === String(id2).trim();
   };
 
-  // Check if current user is the question owner - moved inside component with better comparison
-  const isQuestionOwner = question && currentUserId && compareUserIds(question.author?._id, currentUserId);
+  const isQuestionOwner =
+    question && currentUserId && compareUserIds(question.author?._id, currentUserId);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,72 +50,47 @@ export default function QuestionPage() {
         setLoading(true);
         setError(null);
 
-  // ...existing code...
+        if (!questionId) throw new Error("No question ID provided");
 
-        if (!questionId) {
-          throw new Error("No question ID provided");
-        }
-
-        // Fetch question with better error handling
-        const questionUrl = `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions/${questionId}`;
-  // ...existing code...
-
-        const qRes = await fetch(questionUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` }),
-          },
-          credentials: 'include',
-        });
-
-  // ...existing code...
+        const qRes = await fetch(
+          `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions/${questionId}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+          }
+        );
 
         if (!qRes.ok) {
-          if (qRes.status === 404) {
-            throw new Error("Question not found");
-          }
+          if (qRes.status === 404) throw new Error("Question not found");
           const errorData = await qRes.json().catch(() => ({ error: "Unknown error" }));
           throw new Error(errorData.error || `Failed to fetch question: ${qRes.status}`);
         }
 
         const qData = await qRes.json();
-  // ...existing code...
         setQuestion(qData);
 
-        // Fetch answers
-        const answersUrl = `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${questionId}`;
-  // ...existing code...
-
-        const aRes = await fetch(answersUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` }),
-          },
-          credentials: 'include',
-        });
-
-  // ...existing code...
+        const aRes = await fetch(
+          `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${questionId}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+          }
+        );
 
         if (!aRes.ok) {
           const errorData = await aRes.json().catch(() => ({ error: "Unknown error" }));
-          console.error("Answers fetch error:", errorData);
           throw new Error(errorData.error || `Failed to fetch answers: ${aRes.status}`);
         }
 
         const aData = await aRes.json();
-  // ...existing code...
         setAnswers(aData);
 
-        // Initialize comment states
         const commentStates = Object.fromEntries(aData.map((ans) => [ans._id, ""]));
         const expandedStates = Object.fromEntries(aData.map((ans) => [ans._id, false]));
-
         setNewComments(commentStates);
         setExpandedComments(expandedStates);
-
-  // ...existing code...
       } catch (err) {
         console.error("Error fetching data:", err);
         setError(err.message || "Error loading data");
@@ -133,52 +102,44 @@ export default function QuestionPage() {
     if (questionId) {
       fetchData();
     } else {
-      console.error("No questionId found in URL params");
       setError("No question ID provided");
       setLoading(false);
     }
-  }, [questionId, token]);
+  }, [questionId]);
 
   const handleSubmitAnswer = async (e) => {
     e.preventDefault();
     if (!newAnswer.trim()) return;
 
-    if (!token) {
+    if (!isLoggedIn) {
       alert("Please log in to post an answer");
       return;
     }
 
     try {
       setSubmittingAnswer(true);
-  // ...existing code...
 
-      const res = await fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        credentials: "include",
-        body: JSON.stringify({ questionId, text: newAnswer }),
-      });
-
-  // ...existing code...
+      const res = await fetch(
+        `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ questionId, text: newAnswer }),
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
-  // ...existing code...
         throw new Error(errorData.error || `Failed to post answer: ${res.status}`);
       }
 
       const savedAnswer = await res.json();
       setAnswers((prev) => [...prev, savedAnswer]);
       setNewAnswer("");
-
-      // Initialize states for new answer
       setNewComments((prev) => ({ ...prev, [savedAnswer._id]: "" }));
       setExpandedComments((prev) => ({ ...prev, [savedAnswer._id]: false }));
     } catch (err) {
-  // ...existing code...
       alert(err.message || "Could not post your answer. Please try again.");
     } finally {
       setSubmittingAnswer(false);
@@ -189,35 +150,30 @@ export default function QuestionPage() {
     const commentText = newComments[answerId]?.trim();
     if (!commentText) return;
 
-    if (!token) {
+    if (!isLoggedIn) {
       alert("Please log in to post a comment");
       return;
     }
 
     try {
       setSubmittingComments((prev) => ({ ...prev, [answerId]: true }));
-  // ...existing code...
 
-      const res = await fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        credentials: "include",
-        body: JSON.stringify({ text: commentText }),
-      });
-
-  // ...existing code...
+      const res = await fetch(
+        `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/comments`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ text: commentText }),
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
-  // ...existing code...
         throw new Error(errorData.error || "Failed to post comment");
       }
 
       const newComment = await res.json();
-
       setAnswers((prev) =>
         prev.map((answer) =>
           answer._id === answerId
@@ -225,10 +181,8 @@ export default function QuestionPage() {
             : answer
         )
       );
-
       setNewComments((prev) => ({ ...prev, [answerId]: "" }));
     } catch (err) {
-  // ...existing code...
       alert(err.message || "Could not post your comment. Please try again.");
     } finally {
       setSubmittingComments((prev) => ({ ...prev, [answerId]: false }));
@@ -236,7 +190,7 @@ export default function QuestionPage() {
   };
 
   const handleVote = async (answerId, type) => {
-    if (!token) {
+    if (!isLoggedIn) {
       alert("Please log in to vote");
       return;
     }
@@ -244,15 +198,15 @@ export default function QuestionPage() {
     try {
       setVoteLoading((prev) => ({ ...prev, [answerId]: true }));
 
-      const res = await fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/vote`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        credentials: "include",
-        body: JSON.stringify({ type }),
-      });
+      const res = await fetch(
+        `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/vote`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ type }),
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
@@ -260,12 +214,8 @@ export default function QuestionPage() {
       }
 
       const updatedAnswer = await res.json();
-
-      setAnswers((prev) =>
-        prev.map((a) => (a._id === answerId ? updatedAnswer : a))
-      );
+      setAnswers((prev) => prev.map((a) => (a._id === answerId ? updatedAnswer : a)));
     } catch (err) {
-      console.error("Vote error:", err);
       alert(err.message || "Failed to vote");
     } finally {
       setVoteLoading((prev) => ({ ...prev, [answerId]: false }));
@@ -273,51 +223,43 @@ export default function QuestionPage() {
   };
 
   const handleAccept = async (answerId) => {
-    if (!token) {
+    if (!isLoggedIn) {
       alert("Please log in to accept answers");
       return;
     }
 
-    // Check if current user is the question owner with better comparison
     if (!isQuestionOwner) {
       alert("Only the question owner can accept answers");
-  // ...existing code...
       return;
     }
 
     try {
       setAcceptLoading(true);
 
-      const res = await fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/accept`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        credentials: "include",
-      });
+      const res = await fetch(
+        `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/accept`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
         throw new Error(errorData.error || "Failed to accept answer");
       }
 
-      // Refresh answers to get updated acceptance status
-      const answersUrl = `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${questionId}`;
-      const aRes = await fetch(answersUrl, {
-        headers: {
-          ...(token && { 'Authorization': `Bearer ${token}` }),
-        },
-        credentials: "include",
-      });
+      const aRes = await fetch(
+        `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${questionId}`,
+        { credentials: "include" }
+      );
 
       if (aRes.ok) {
         const updatedAnswers = await aRes.json();
         setAnswers(updatedAnswers);
       }
-
     } catch (err) {
-  // ...existing code...
       alert(err.message || "Failed to accept answer");
     } finally {
       setAcceptLoading(false);
@@ -325,10 +267,7 @@ export default function QuestionPage() {
   };
 
   const toggleComments = (answerId) => {
-    setExpandedComments((prev) => ({
-      ...prev,
-      [answerId]: !prev[answerId],
-    }));
+    setExpandedComments((prev) => ({ ...prev, [answerId]: !prev[answerId] }));
   };
 
   const formatDate = (dateString) => {
@@ -341,26 +280,12 @@ export default function QuestionPage() {
     });
   };
 
-  // Enhanced debug section
-  console.log("=== ACCEPTANCE FEATURE DEBUG ===");
-  console.log("Current User ID:", currentUserId, typeof currentUserId);
-  console.log("Question Author:", question?.author);
-  console.log("Question Author ID:", question?.author?._id, typeof question?.author?._id);
-  console.log("String comparison result:", compareUserIds(question?.author?._id, currentUserId));
-  console.log("Is Question Owner:", isQuestionOwner);
-  console.log("Token exists:", !!token);
-  console.log("Question loaded:", !!question);
-  console.log("=================================");
-
-  console.log("Component render - Loading:", loading, "Error:", error, "Question:", question);
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-2 text-gray-600">Loading question...</p>
-          <p className="text-sm text-gray-400">Question ID: {questionId}</p>
         </div>
       </div>
     );
@@ -372,8 +297,7 @@ export default function QuestionPage() {
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
-          <p className="text-red-600 mb-2">{error}</p>
-          <p className="text-sm text-gray-500 mb-4">Question ID: {questionId}</p>
+          <p className="text-red-600 mb-4">{error}</p>
           <div className="space-x-4">
             <button
               onClick={() => window.location.reload()}
@@ -398,12 +322,7 @@ export default function QuestionPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Question not found</h2>
-          <p className="text-gray-600 mb-2">The question you're looking for doesn't exist.</p>
-          <p className="text-sm text-gray-500 mb-4">Question ID: {questionId}</p>
-          <Link
-            to="/"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
+          <Link to="/" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
             Back to Questions
           </Link>
         </div>
@@ -415,9 +334,7 @@ export default function QuestionPage() {
     <div className="min-h-screen bg-gray-50 pb-12">
       {/* Breadcrumb */}
       <div className="max-w-4xl mx-auto pt-6 px-4 text-sm text-gray-500">
-        <Link to="/" className="hover:underline hover:text-blue-600">
-          Questions
-        </Link>{" "}
+        <Link to="/" className="hover:underline hover:text-blue-600">Questions</Link>
         <span className="mx-2">&gt;</span>
         <span className="text-gray-700">
           {question.title.length > 50 ? `${question.title.substring(0, 50)}...` : question.title}
@@ -431,8 +348,6 @@ export default function QuestionPage() {
           <div className="prose max-w-none mb-4">
             <div dangerouslySetInnerHTML={{ __html: question.description }} />
           </div>
-
-          {/* Question metadata */}
           <div className="flex items-center text-sm text-gray-500 space-x-4 pt-4 border-t border-gray-100">
             <div className="flex items-center">
               <User className="w-4 h-4 mr-1" />
@@ -447,8 +362,6 @@ export default function QuestionPage() {
           </div>
         </div>
 
-  {/* Answers Section */}
-
         {/* Answers Section */}
         <div className="space-y-6">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center">
@@ -460,22 +373,26 @@ export default function QuestionPage() {
             <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
               <MessageSquareText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No answers yet</h3>
-              <p className="text-gray-600 mb-4">Be the first to answer this question!</p>
+              <p className="text-gray-600">Be the first to answer this question!</p>
             </div>
           ) : (
             answers.map((answer) => (
-              <div key={answer._id} className={`bg-white rounded-lg shadow-sm border overflow-hidden ${answer.isAccepted ? 'border-green-300 bg-green-50' : 'border-gray-200'
-                }`}>
+              <div
+                key={answer._id}
+                className={`bg-white rounded-lg shadow-sm border overflow-hidden ${
+                  answer.isAccepted ? "border-green-300 bg-green-50" : "border-gray-200"
+                }`}
+              >
                 <div className="p-6">
                   <div className="flex">
                     {/* Voting sidebar */}
                     <div className="flex flex-col items-center mr-6 space-y-2">
                       <button
-                        onClick={() => handleVote(answer._id, 'up')}
-                        disabled={voteLoading[answer._id] || !token}
+                        onClick={() => handleVote(answer._id, "up")}
+                        disabled={voteLoading[answer._id] || !isLoggedIn}
                         className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <ThumbsUp className="w-4 h-4 text-gray-600 hover:text-green-600" />
+                        <ThumbsUp className="w-4 h-4 text-gray-600" />
                       </button>
 
                       <span className="text-lg font-semibold text-gray-700">
@@ -483,31 +400,30 @@ export default function QuestionPage() {
                       </span>
 
                       <button
-                        onClick={() => handleVote(answer._id, 'down')}
-                        disabled={voteLoading[answer._id] || !token}
+                        onClick={() => handleVote(answer._id, "down")}
+                        disabled={voteLoading[answer._id] || !isLoggedIn}
                         className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <ThumbsDown className="w-4 h-4 text-gray-600 hover:text-red-600" />
+                        <ThumbsDown className="w-4 h-4 text-gray-600" />
                       </button>
 
-                      {/* Accept answer button (only for question owner) */}
                       {isQuestionOwner && (
                         <button
                           onClick={() => handleAccept(answer._id)}
-                          disabled={acceptLoading || !token}
-                          className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${answer.isAccepted
-                              ? 'border-green-500 bg-green-500 text-white'
-                              : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
-                            }`}
-                          title={answer.isAccepted ? 'Accepted answer' : 'Accept this answer'}
+                          disabled={acceptLoading}
+                          className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                            answer.isAccepted
+                              ? "border-green-500 bg-green-500 text-white"
+                              : "border-gray-300 hover:border-green-500 hover:bg-green-50"
+                          }`}
+                          title={answer.isAccepted ? "Accepted answer" : "Accept this answer"}
                         >
                           <Check className="w-4 h-4" />
                         </button>
                       )}
 
-                      {/* Accepted indicator for non-owners */}
                       {!isQuestionOwner && answer.isAccepted && (
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-green-500 bg-green-500 text-white" title="Accepted answer">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-green-500 bg-green-500 text-white">
                           <Check className="w-4 h-4" />
                         </div>
                       )}
@@ -515,7 +431,6 @@ export default function QuestionPage() {
 
                     {/* Answer content */}
                     <div className="flex-1">
-                      {/* Accepted answer badge */}
                       {answer.isAccepted && (
                         <div className="flex items-center mb-3">
                           <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
@@ -529,7 +444,6 @@ export default function QuestionPage() {
                         <div dangerouslySetInnerHTML={{ __html: answer.text }} />
                       </div>
 
-                      {/* Answer metadata */}
                       <div className="flex items-center text-sm text-gray-500 space-x-4 mt-4 pt-4 border-t border-gray-100">
                         <div className="flex items-center">
                           <User className="w-4 h-4 mr-1" />
@@ -559,7 +473,6 @@ export default function QuestionPage() {
 
                   {expandedComments[answer._id] && (
                     <div className="mt-3 space-y-3">
-                      {/* Existing comments */}
                       {answer.comments?.map((comment) => (
                         <div key={comment._id} className="bg-white p-3 rounded border border-gray-200">
                           <p className="text-sm text-gray-800">{comment.text}</p>
@@ -575,16 +488,12 @@ export default function QuestionPage() {
                         </div>
                       ))}
 
-                      {/* Add comment form */}
                       <div className="mt-4 flex space-x-2">
                         <input
                           type="text"
                           value={newComments[answer._id] || ""}
                           onChange={(e) =>
-                            setNewComments((prev) => ({
-                              ...prev,
-                              [answer._id]: e.target.value,
-                            }))
+                            setNewComments((prev) => ({ ...prev, [answer._id]: e.target.value }))
                           }
                           onKeyPress={(e) => {
                             if (e.key === "Enter" && !e.shiftKey) {
@@ -619,22 +528,21 @@ export default function QuestionPage() {
           <form onSubmit={handleSubmitAnswer} className="space-y-4">
             <TextEditor
               value={newAnswer}
-              onChange={(htmlContent, textContent) => {
-                setNewAnswer(htmlContent);
-              }}
+              onChange={(htmlContent) => setNewAnswer(htmlContent)}
               placeholder="Write your answer here..."
             />
-
             <div className="flex items-center space-x-4">
               <button
                 type="submit"
                 className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                disabled={!newAnswer.trim() || submittingAnswer || !token}
+                disabled={!newAnswer.trim() || submittingAnswer || !isLoggedIn}
               >
                 {submittingAnswer ? "Posting..." : "Post Your Answer"}
               </button>
               <p className="text-sm text-gray-500">
-                {!token ? "Please log in to post an answer." : "Make sure your answer is helpful and well-formatted."}
+                {!isLoggedIn
+                  ? "Please log in to post an answer."
+                  : "Make sure your answer is helpful and well-formatted."}
               </p>
             </div>
           </form>

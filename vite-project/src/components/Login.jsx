@@ -25,11 +25,8 @@ export default function Login() {
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: undefined, api: undefined }));
   };
 
@@ -50,9 +47,9 @@ export default function Login() {
         const data = await res.json();
         if (res.ok) {
           localStorage.setItem("user", JSON.stringify(data.user));
+          window.dispatchEvent(new Event("userLogin"));
           navigate("/");
-        }
-        else {
+        } else {
           setErrors({ api: data.error || "Login failed." });
         }
       } catch {
@@ -62,15 +59,11 @@ export default function Login() {
     }
   };
 
-  const handleGoogle = () => {
-    alert("🔒 Google sign-in not implemented yet.");
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-8"> {/* Adjusted background and padding */}
-      <div className="w-full max-w-md p-8 rounded-lg shadow-md bg-white relative"> {/* Adjusted padding and shadow */}
-        <div className="text-center mb-6"> {/* Centered heading and description */}
-          <h2 className="text-2xl font-bold text-gray-800 mb-1">Welcome Back</h2> {/* Darker text */}
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-8">
+      <div className="w-full max-w-md p-8 rounded-lg shadow-md bg-white relative">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-1">Welcome Back</h2>
         </div>
 
         {errors.api && (
@@ -79,7 +72,7 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4"> {/* Increased space-y */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <FormInput
             label="Email"
             name="email"
@@ -87,7 +80,7 @@ export default function Login() {
             value={form.email}
             onChange={handleChange}
             error={errors.email}
-            placeholder="you@example.com" // Added placeholder
+            placeholder="you@example.com"
           />
 
           <FormInput
@@ -102,19 +95,16 @@ export default function Login() {
             toggleShow={() => setShowPassword((v) => !v)}
           />
 
-
-
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition disabled:opacity-50 text-base" // Adjusted padding and font-weight
+            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition disabled:opacity-50 text-base"
           >
-            {submitting ? "Signing In..." : "Sign In"} {/* Changed text */}
+            {submitting ? "Signing In..." : "Sign In"}
           </button>
-
         </form>
-        <div className="text-center">
 
+        <div className="text-center">
           <p className="mt-6 text-center text-sm text-gray-500">
             Don't have an account?{" "}
             <Link to="/signup" className="font-medium text-blue-600 hover:underline">
@@ -127,12 +117,10 @@ export default function Login() {
   );
 }
 
-// Reusable input component
-function FormInput({ label, name, type, value, onChange, error, showToggle, showPassword, toggleShow, placeholder, // Added placeholder prop
-}) {
+function FormInput({ label, name, type, value, onChange, error, showToggle, showPassword, toggleShow, placeholder }) {
   return (
     <div className="relative">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1"> {/* Darker label text, added mb-1 */}
+      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
         {label}
       </label>
       <input
@@ -144,17 +132,17 @@ function FormInput({ label, name, type, value, onChange, error, showToggle, show
         aria-invalid={!!error}
         aria-describedby={error ? `${name}-error` : undefined}
         className={`block w-full rounded-md border-gray-300 shadow-sm placeholder-gray-400
-                  focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-base transition ${ // Adjusted padding and text size
-          error ? "border-red-500" : "" // Only apply red border on error
-          }`}
-        placeholder={placeholder} // Pass placeholder to input
+                  focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-base transition ${
+          error ? "border-red-500" : ""
+        }`}
+        placeholder={placeholder}
       />
       {showToggle && (
         <button
           type="button"
           aria-label={showPassword ? "Hide password" : "Show password"}
           onClick={toggleShow}
-          className="absolute right-3 top-9 text-gray-400 hover:text-gray-600 focus:outline-none" // Adjusted position and colors
+          className="absolute right-3 top-9 text-gray-400 hover:text-gray-600 focus:outline-none"
         >
           {showPassword ? <EyeOffIcon /> : <EyeIcon />}
         </button>
@@ -168,7 +156,6 @@ function FormInput({ label, name, type, value, onChange, error, showToggle, show
   );
 }
 
-// Eye Icons (no changes needed here)
 function EyeIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
