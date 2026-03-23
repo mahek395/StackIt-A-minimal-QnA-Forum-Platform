@@ -13,7 +13,7 @@ router.post("/generate", verifyToken, async (req, res) => {
     const prompt = `Suggest exactly 3 concise and relevant tags (1-3 words each) for the following question. Return only the tags separated by commas, no numbering, no extra text:\n\nTitle: ${title}\n\nDescription: ${description}`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
