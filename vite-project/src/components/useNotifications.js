@@ -1,21 +1,18 @@
 import { useState, useEffect } from "react";
 
-export default function useNotifications(token) {
+export default function useNotifications(isLoggedIn) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const fetchNotifications = async () => {
-    if (!token) return;
+    if (!isLoggedIn) return;
     setLoading(true);
     setError(null);
     try {
       const res = await fetch("https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/notifications", {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to fetch notifications");
@@ -29,22 +26,16 @@ export default function useNotifications(token) {
     }
   };
 
-  // Fetch on mount and when token changes
   useEffect(() => {
     fetchNotifications();
-    // eslint-disable-next-line
-  }, [token]);
+  }, [isLoggedIn]);
 
-  // Mark all as read
   const markAllAsRead = async () => {
     const unread = notifications.filter(n => !n.read);
     await Promise.all(unread.map(n =>
       fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/notifications/${n._id}/read`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       })
     ));

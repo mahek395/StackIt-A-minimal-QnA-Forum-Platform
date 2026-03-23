@@ -21,7 +21,20 @@ router.post("/", verifyToken, async (req, res) => {
     });
 
     await answer.save();
-
+        // Add notification for vote
+    try {
+      const Notification = require("../models/Notification");
+      if (answer.author.toString() !== req.userId) {
+        await Notification.create({
+          user: answer.author,
+          type: "vote",
+          message: `Your answer received a ${type}vote`,
+          link: `/questions/${answer.question}`,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("[Notification] Failed to create vote notification:", notifyErr);
+    }
     // Populate author and comments.author for complete data
     await answer.populate([
       { path: "author", select: "username firstName lastName" },

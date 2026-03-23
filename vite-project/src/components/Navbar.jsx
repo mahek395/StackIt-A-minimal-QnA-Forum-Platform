@@ -7,8 +7,7 @@ import useNotifications from './useNotifications';
 export default function Navbar({ isLoggedIn, loading, user, showLogout, setShowLogout, handleLogout }) {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
-  const token = localStorage.getItem('token');
-  const { notifications, unreadCount, loading: notifLoading, markAllAsRead } = useNotifications(token);
+const { notifications, unreadCount, loading: notifLoading, markAllAsRead } = useNotifications(isLoggedIn);
 
   // Debug logging - remove in production
   useEffect(() => {
