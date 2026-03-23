@@ -8,6 +8,7 @@ const authRoutes = require("./routes/auth");
 const questionRoutes = require("./routes/Questions");
 const answerRoutes = require('./routes/answerRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const tagsRoute = require("./routes/tagsRoute");
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/questions", questionRoutes);
 app.use('/api/answers', answerRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use("/api/tags", tagsRoute);
 
 mongoose.connect(process.env.MONGO_URL)
   .then(() => app.listen(process.env.PORT || 5000, () => {

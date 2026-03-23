@@ -21,34 +21,17 @@ router.post("/", verifyToken, async (req, res) => {
     });
 
     await answer.save();
-        // Add notification for vote
-    try {
-      const Notification = require("../models/Notification");
-      if (answer.author.toString() !== req.userId) {
-        await Notification.create({
-          user: answer.author,
-          type: "vote",
-          message: `Your answer received a ${type}vote`,
-          link: `/questions/${answer.question}`,
-        });
-      }
-    } catch (notifyErr) {
-      console.error("[Notification] Failed to create vote notification:", notifyErr);
-    }
-    // Populate author and comments.author for complete data
+
     await answer.populate([
       { path: "author", select: "username firstName lastName" },
       { path: "comments.author", select: "username firstName lastName" }
     ]);
 
-
-    // --- Notification logic ---
     try {
       const Question = require("../models/Questions");
       const Notification = require("../models/Notification");
       const question = await Question.findById(questionId).populate("author");
       if (question && question.author && question.author._id.toString() !== userId) {
-        // Don't notify yourself
         await Notification.create({
           user: question.author._id,
           type: "answer",
@@ -57,7 +40,6 @@ router.post("/", verifyToken, async (req, res) => {
         });
       }
 
-      // --- @mention logic for answers ---
       const mentionRegex = /@([a-zA-Z0-9_]+)/g;
       let match;
       const mentionedUsernames = new Set();
@@ -77,11 +59,9 @@ router.post("/", verifyToken, async (req, res) => {
           }
         }
       }
-      // --- End @mention logic for answers ---
     } catch (notifyErr) {
-      console.error("[Notification] Failed to create notification for answer or mention:", notifyErr);
+      console.error("[Notification] Failed to create notification for answer:", notifyErr);
     }
-    // --- End notification logic ---
 
     res.status(201).json(answer);
   } catch (err) {
@@ -90,7 +70,7 @@ router.post("/", verifyToken, async (req, res) => {
   }
 });
 
-// GET all answers for a specific question (updated route to match frontend)
+// GET all answers for a question
 router.get("/:questionId", async (req, res) => {
   try {
     const answers = await Answer.find({ question: req.params.questionId })
@@ -110,7 +90,7 @@ router.get("/single/:id", async (req, res) => {
     const answer = await Answer.findById(req.params.id)
       .populate("author", "username firstName lastName")
       .populate("comments.author", "username firstName lastName");
-    
+
     if (!answer) {
       return res.status(404).json({ error: "Answer not found" });
     }
@@ -137,7 +117,6 @@ router.post("/:id/comments", verifyToken, async (req, res) => {
       return res.status(404).json({ error: "Answer not found" });
     }
 
-    // Add comment to the answer
     const newComment = {
       author: userId,
       text: text.trim(),
@@ -146,16 +125,11 @@ router.post("/:id/comments", verifyToken, async (req, res) => {
 
     answer.comments.push(newComment);
     await answer.save();
-
-    // Get the newly added comment with populated author
     await answer.populate("comments.author", "username firstName lastName");
 
-
-    // --- Notification logic ---
     try {
       const Notification = require("../models/Notification");
       if (answer.author && answer.author._id.toString() !== userId) {
-        // Don't notify yourself
         await Notification.create({
           user: answer.author._id,
           type: "comment",
@@ -164,7 +138,6 @@ router.post("/:id/comments", verifyToken, async (req, res) => {
         });
       }
 
-      // --- @mention logic for comments ---
       const mentionRegex = /@([a-zA-Z0-9_]+)/g;
       let match;
       const mentionedUsernames = new Set();
@@ -184,46 +157,36 @@ router.post("/:id/comments", verifyToken, async (req, res) => {
           }
         }
       }
-      // --- End @mention logic for comments ---
     } catch (notifyErr) {
-      console.error("[Notification] Failed to create notification for comment or mention:", notifyErr);
+      console.error("[Notification] Failed to create notification for comment:", notifyErr);
     }
-    // --- End notification logic ---
 
-    // Return the newly added comment
     const addedComment = answer.comments[answer.comments.length - 1];
     res.status(201).json(addedComment);
-    
   } catch (err) {
     console.error("Failed to post comment:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// DELETE a comment from an answer
+// DELETE a comment
 router.delete("/:answerId/comments/:commentId", verifyToken, async (req, res) => {
   try {
     const { answerId, commentId } = req.params;
     const userId = req.userId;
 
     const answer = await Answer.findById(answerId);
-    if (!answer) {
-      return res.status(404).json({ error: "Answer not found" });
-    }
+    if (!answer) return res.status(404).json({ error: "Answer not found" });
 
     const comment = answer.comments.id(commentId);
-    if (!comment) {
-      return res.status(404).json({ error: "Comment not found" });
-    }
+    if (!comment) return res.status(404).json({ error: "Comment not found" });
 
-    // Check if user is the comment author or admin
     if (comment.author.toString() !== userId && req.userRole !== "admin") {
       return res.status(403).json({ error: "Not authorized to delete this comment" });
     }
 
     comment.remove();
     await answer.save();
-
     res.json({ message: "Comment deleted successfully" });
   } catch (err) {
     console.error("Failed to delete comment:", err);
@@ -231,9 +194,7 @@ router.delete("/:answerId/comments/:commentId", verifyToken, async (req, res) =>
   }
 });
 
-
-
-// PATCH update answer (only author can edit)
+// PATCH update answer
 router.patch("/:id", verifyToken, async (req, res) => {
   try {
     const { text } = req.body;
@@ -245,11 +206,8 @@ router.patch("/:id", verifyToken, async (req, res) => {
     }
 
     const answer = await Answer.findById(answerId);
-    if (!answer) {
-      return res.status(404).json({ error: "Answer not found" });
-    }
+    if (!answer) return res.status(404).json({ error: "Answer not found" });
 
-    // Check if user is the author
     if (answer.author.toString() !== userId) {
       return res.status(403).json({ error: "Not authorized to edit this answer" });
     }
@@ -270,13 +228,11 @@ router.patch("/:id", verifyToken, async (req, res) => {
   }
 });
 
-// DELETE an answer (only author or admin)
+// DELETE an answer
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
     const answer = await Answer.findById(req.params.id);
-    if (!answer) {
-      return res.status(404).json({ error: "Answer not found" });
-    }
+    if (!answer) return res.status(404).json({ error: "Answer not found" });
 
     if (answer.author.toString() !== req.userId && req.userRole !== "admin") {
       return res.status(403).json({ error: "Not authorized to delete this answer" });
@@ -290,19 +246,16 @@ router.delete("/:id", verifyToken, async (req, res) => {
   }
 });
 
-// PATCH accept an answer (only question owner)
-// PATCH vote with user tracking (KEEP THIS ONE, REMOVE THE SIMPLE ONE)
+// PATCH vote on answer
 router.patch("/:id/vote", verifyToken, async (req, res) => {
   try {
-    const { type } = req.body; // "up" or "down"
+    const { type } = req.body;
     if (!["up", "down"].includes(type)) {
       return res.status(400).json({ error: "Invalid vote type" });
     }
 
     const answer = await Answer.findById(req.params.id);
-    if (!answer) {
-      return res.status(404).json({ error: "Answer not found" });
-    }
+    if (!answer) return res.status(404).json({ error: "Answer not found" });
 
     if (!answer.voters) answer.voters = new Map();
 
@@ -315,17 +268,29 @@ router.patch("/:id/vote", verifyToken, async (req, res) => {
     if (!answer.votes) answer.votes = 0;
 
     if (!prevVote) {
-      // First time voting
       answer.votes += type === "up" ? 1 : -1;
     } else {
-      // Changing vote
       answer.votes += type === "up" ? 2 : -2;
     }
 
     answer.voters.set(req.userId, type);
-
     await answer.save();
     await answer.populate("author", "username firstName lastName");
+
+    // 🔔 Notify answer author about the vote
+    try {
+      const Notification = require("../models/Notification");
+      if (answer.author._id.toString() !== req.userId) {
+        await Notification.create({
+          user: answer.author._id,
+          type: "vote",
+          message: `Your answer received a ${type === "up" ? "👍 upvote" : "👎 downvote"}`,
+          link: `/questions/${answer.question}`,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("[Notification] Failed to create vote notification:", notifyErr);
+    }
 
     res.json(answer);
   } catch (err) {
@@ -334,30 +299,39 @@ router.patch("/:id/vote", verifyToken, async (req, res) => {
   }
 });
 
-// PATCH accept an answer (only question owner) - FIXED VERSION
+// PATCH accept an answer
 router.patch("/:id/accept", verifyToken, async (req, res) => {
   try {
     const answer = await Answer.findById(req.params.id).populate("question");
-    if (!answer) {
-      return res.status(404).json({ error: "Answer not found" });
-    }
+    if (!answer) return res.status(404).json({ error: "Answer not found" });
 
-    // Only the owner of the question can accept an answer
     if (answer.question.author.toString() !== req.userId) {
       return res.status(403).json({ error: "Not authorized to accept this answer" });
     }
 
-    // Unaccept all other answers for this question
     await Answer.updateMany(
       { question: answer.question._id },
       { $set: { isAccepted: false } }
     );
 
-    // Accept this one
     answer.isAccepted = true;
     await answer.save();
 
-    // Return all answers for this question with updated status
+    // 🔔 Notify answer author that their answer was accepted
+    try {
+      const Notification = require("../models/Notification");
+      if (answer.author.toString() !== req.userId) {
+        await Notification.create({
+          user: answer.author,
+          type: "accepted",
+          message: `🎉 Your answer was accepted!`,
+          link: `/questions/${answer.question._id}`,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("[Notification] Failed to create accept notification:", notifyErr);
+    }
+
     const allAnswers = await Answer.find({ question: answer.question._id })
       .populate("author", "username firstName lastName")
       .populate("comments.author", "username firstName lastName")
@@ -369,7 +343,5 @@ router.patch("/:id/accept", verifyToken, async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-
 
 module.exports = router;

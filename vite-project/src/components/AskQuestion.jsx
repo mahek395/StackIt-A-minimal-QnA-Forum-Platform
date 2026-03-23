@@ -2,7 +2,6 @@ import React, { useState, useRef } from "react";
 import TextEditor from "./TextEditor";
 import { useNavigate } from "react-router-dom";
 
-
 const AskQuestion = ({ onPost }) => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
@@ -13,7 +12,6 @@ const AskQuestion = ({ onPost }) => {
   const [showTags, setShowTags] = useState(false);
   const [loadingTags, setLoadingTags] = useState(false);
 
-  // Keep the ref for backwards compatibility, but sync it with state
   const editorContentRef = useRef("");
 
   const handleEditorChange = (content) => {
@@ -23,9 +21,7 @@ const AskQuestion = ({ onPost }) => {
 
   const handleTagCheckbox = (tag) => {
     setSelectedTags((prev) =>
-      prev.includes(tag)
-        ? prev.filter((t) => t !== tag)
-        : [...prev, tag]
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
@@ -33,48 +29,33 @@ const AskQuestion = ({ onPost }) => {
     setShowTags(true);
     setLoadingTags(true);
 
-    // Use both state and ref to ensure we get the latest content
     const currentDescription = description || editorContentRef.current;
-    const question = `Title: ${title}\n\nDescription: ${currentDescription}`;
-    const prompt = `Suggest 3 concise and relevant tags (1-3 words each) for the following question without numbering or extra text:\n\n${question}`;
 
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer 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",
-          "HTTP-Referer": "<YOUR_SITE_URL>",
-          "X-Title": "<YOUR_SITE_NAME>",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "meta-llama/llama-3.3-70b-instruct:free",
-          messages: [{ role: "user", content: prompt }],
-        }),
-      });
+      const res = await fetch(
+        "https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/tags/generate",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title, description: currentDescription }),
+        }
+      );
 
       const data = await res.json();
-      const aiResponse = data.choices?.[0]?.message?.content || "";
-
-      const extractedTags = aiResponse
-        .replace(/[\d\.\-]+/g, "")
-        .split(/[,|\n]/)
-        .map((tag) => tag.trim())
-        .filter((tag) => tag.length > 0);
-
-      setAiTags(extractedTags);
+      if (!res.ok) throw new Error(data.error || "Failed to generate tags");
+      setAiTags(data.tags);
     } catch (error) {
       console.error("Failed to generate tags:", error);
+      alert("Could not generate tags. Please try again.");
     } finally {
       setLoadingTags(false);
     }
   };
 
   const handleSubmit = async () => {
-    // Get the most current description content
     const currentDescription = description || editorContentRef.current;
-    
-    // Validate required fields
+
     if (!title.trim()) {
       alert("Please enter a title for your question.");
       return;
@@ -96,35 +77,26 @@ const AskQuestion = ({ onPost }) => {
       tags: finalTags,
     };
 
-    console.log("Question payload:", questionData);
-
     try {
-      const res = await fetch("https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // include HTTP-only cookie
-        body: JSON.stringify(questionData),
-      });
+      const res = await fetch(
+        "https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(questionData),
+        }
+      );
 
       if (!res.ok) {
         const error = await res.json();
-        console.error("Failed to post question:", error);
-        alert(`Error: ${error.error || 'Failed to post question'}`);
+        alert(`Error: ${error.error || "Failed to post question"}`);
         return;
       }
 
-      let data = {};
-      try {
-        data = await res.json(); // Try parsing only if you expect a JSON
-        console.log("Submitted Question:", data.question);
-        if (onPost) onPost(data.question);
-      } catch (err) {
-        console.warn("No JSON response body, or failed to parse.");
-      }
+      const data = await res.json();
+      if (onPost) onPost(data.question);
 
-      // Clear the form
       setTitle("");
       setDescription("");
       setAiTags([]);
@@ -135,7 +107,6 @@ const AskQuestion = ({ onPost }) => {
 
       alert("Question posted successfully!");
       navigate("/");
-
     } catch (error) {
       console.error("Error submitting question:", error);
       alert("Network error. Please try again.");
@@ -150,7 +121,6 @@ const AskQuestion = ({ onPost }) => {
       </p>
 
       <section className="mb-8">
-        {/* Title */}
         <div className="mb-6">
           <label className="block text-gray-700 font-medium mb-2" htmlFor="title">
             <span className="font-bold">Title</span>
@@ -165,7 +135,6 @@ const AskQuestion = ({ onPost }) => {
           />
         </div>
 
-        {/* Description */}
         <div>
           <label className="block text-gray-700 font-medium mb-2" htmlFor="description">
             <span className="font-bold">Description</span>
@@ -174,7 +143,6 @@ const AskQuestion = ({ onPost }) => {
         </div>
       </section>
 
-      {/* See Tags Button */}
       {!showTags && (
         <div className="mb-6">
           <button
@@ -186,7 +154,6 @@ const AskQuestion = ({ onPost }) => {
         </div>
       )}
 
-      {/* Tags Section */}
       {showTags && (
         <div className="mb-6">
           <label className="block text-gray-700 font-medium mb-2" htmlFor="tags">
@@ -197,7 +164,6 @@ const AskQuestion = ({ onPost }) => {
             <p className="text-sm text-gray-500">Generating tags...</p>
           ) : (
             <>
-              {/* AI Suggested Tags as Checkboxes */}
               {aiTags.length > 0 && (
                 <div className="flex flex-wrap gap-3 mb-4">
                   {aiTags.map((tag, idx) => (
@@ -215,7 +181,6 @@ const AskQuestion = ({ onPost }) => {
                 </div>
               )}
 
-              {/* Custom Tag Input */}
               <input
                 type="text"
                 id="tags"
@@ -229,7 +194,6 @@ const AskQuestion = ({ onPost }) => {
         </div>
       )}
 
-      {/* Post Button */}
       <div className="flex justify-center">
         <button
           className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
