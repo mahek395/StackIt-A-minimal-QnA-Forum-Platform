@@ -4,13 +4,12 @@ import { Search, Plus, Clock } from 'lucide-react';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api', // ✅ correct API base
+  baseURL: 'https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api',
   withCredentials: true
 });
 
 const stripHtmlTags = (html) => {
   if (!html) return '';
-  // Remove HTML tags and decode HTML entities
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
   return tmp.textContent || tmp.innerText || '';
@@ -25,44 +24,22 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('Newest');
   const [currentPage, setCurrentPage] = useState(1);
-  const questionsPerPage = 2;
+  const questionsPerPage = 10;
 
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        console.log("🔄 Fetching questions from API...");
         setLoading(true);
-
-        const res = await axios.get('https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions');
-
-        console.log("✅ API Response received:");
-        console.log("Response status:", res.status);
-        console.log("Response data type:", typeof res.data);
-        console.log("Is array:", Array.isArray(res.data));
-        console.log("Data length:", res.data?.length);
-
-        if (res.data && res.data.length > 0) {
-          console.log("📋 First question sample:");
-          console.log("- ID:", res.data[0]._id);
-          console.log("- Title:", res.data[0].title);
-          console.log("- Author:", res.data[0].author);
-          console.log("- AnswersCount:", res.data[0].answersCount);
-        }
-
+        const res = await axios.get(
+          'https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions'
+        );
         if (Array.isArray(res.data)) {
           setQuestions(res.data);
-          console.log(`✅ Set ${res.data.length} questions in state`);
         } else {
-          console.error("❌ Expected array but got:", typeof res.data);
-          console.error("Actual data:", res.data);
           setQuestions([]);
         }
-
       } catch (err) {
-        console.error('❌ Failed to fetch questions:');
-        console.error('Error message:', err.message);
-        console.error('Response data:', err.response?.data);
-        console.error('Response status:', err.response?.status);
+        console.error('Failed to fetch questions:', err.message);
         setQuestions([]);
       } finally {
         setLoading(false);
@@ -70,9 +47,7 @@ export default function HomePage() {
     };
     fetchQuestions();
   }, []);
-  
 
-  // Filter
   const filteredQuestions = questions.filter(question => {
     const query = searchQuery.toLowerCase();
     return (
@@ -86,52 +61,26 @@ export default function HomePage() {
     );
   });
 
-  // Sort
-  // Improved sorting logic with better error handling
-const sortedQuestions = [...filteredQuestions].sort((a, b) => {
-  console.log(`🔄 Sorting by: ${sortBy}`); // Debug log
-  
-  switch (sortBy) {
-    case 'Newest':
-      const dateA = new Date(a.createdAt);
-      const dateB = new Date(b.createdAt);
-      return dateB - dateA; // Newest first
-      
-    case 'Most Answered':
-      const answersA = Number(a.answersCount) || 0;
-      const answersB = Number(b.answersCount) || 0;
-      console.log(`Comparing answers: ${a.title} (${answersA}) vs ${b.title} (${answersB})`);
-      return answersB - answersA; // Most answered first
-      
-    case 'Most Viewed':
-      const viewsA = Number(a.views) || 0;
-      const viewsB = Number(b.views) || 0;
-      console.log(`Comparing views: ${a.title} (${viewsA}) vs ${b.title} (${viewsB})`);
-      return viewsB - viewsA; // Most viewed first
-      
-    default:
-      return 0;
-  }
-});
+  const sortedQuestions = [...filteredQuestions].sort((a, b) => {
+    switch (sortBy) {
+      case 'Newest':
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      case 'Most Answered':
+        return (Number(b.answersCount) || 0) - (Number(a.answersCount) || 0);
+      case 'Most Viewed':
+        return (Number(b.views) || 0) - (Number(a.views) || 0);
+      default:
+        return 0;
+    }
+  });
 
-// Add this debug log after sorting
-console.log(`📊 After sorting by ${sortBy}:`, 
-  sortedQuestions.map(q => ({
-    title: q.title,
-    answers: q.answersCount || 0,
-    views: q.views || 0,
-    date: q.createdAt
-  }))
-);
-
-  // Pagination
   const indexOfLastQuestion = currentPage * questionsPerPage;
   const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
   const currentQuestions = sortedQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
   const totalPages = Math.ceil(sortedQuestions.length / questionsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  
+
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
@@ -211,7 +160,10 @@ console.log(`📊 After sorting by ${sortBy}:`,
                         </p>
                         <div className="flex flex-wrap gap-2 mb-3">
                           {question.tags?.map((tag, index) => (
-                            <span key={index} className="px-2.5 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800">
+                            <span
+                              key={index}
+                              className="px-2.5 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"
+                            >
                               {tag}
                             </span>
                           ))}
@@ -261,8 +213,9 @@ console.log(`📊 After sorting by ${sortBy}:`,
                     <button
                       key={number}
                       onClick={() => paginate(number)}
-                      className={`px-4 py-2 border-t border-b bg-white text-sm ${currentPage === number ? 'bg-blue-50 text-blue-600' : ''
-                        }`}
+                      className={`px-4 py-2 border-t border-b bg-white text-sm ${
+                        currentPage === number ? 'bg-blue-50 text-blue-600' : ''
+                      }`}
                     >
                       {number}
                     </button>
