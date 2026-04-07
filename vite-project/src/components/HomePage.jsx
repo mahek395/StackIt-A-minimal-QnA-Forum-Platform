@@ -4,7 +4,7 @@ import { Search, Plus, Clock } from 'lucide-react';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api',
+  baseURL: 'https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api',
   withCredentials: true
 });
 
@@ -31,7 +31,7 @@ export default function HomePage() {
       try {
         setLoading(true);
         const res = await axios.get(
-          'https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions'
+          'https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/questions'
         );
         if (Array.isArray(res.data)) {
           setQuestions(res.data);

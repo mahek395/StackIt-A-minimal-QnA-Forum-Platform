@@ -11,7 +11,7 @@ export default function useNotifications(isLoggedIn) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/notifications", {
+      const res = await fetch("https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/notifications", {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
@@ -33,7 +33,7 @@ export default function useNotifications(isLoggedIn) {
   const markAllAsRead = async () => {
     const unread = notifications.filter(n => !n.read);
     await Promise.all(unread.map(n =>
-      fetch(`https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/notifications/${n._id}/read`, {
+      fetch(`https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/notifications/${n._id}/read`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

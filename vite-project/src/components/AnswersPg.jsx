@@ -53,7 +53,7 @@ export default function QuestionPage() {
         if (!questionId) throw new Error("No question ID provided");
 
         const qRes = await fetch(
-          `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions/${questionId}`,
+          `https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/questions/${questionId}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
@@ -71,7 +71,7 @@ export default function QuestionPage() {
         setQuestion(qData);
 
         const aRes = await fetch(
-          `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${questionId}`,
+          `https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/answers/${questionId}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
@@ -120,7 +120,7 @@ export default function QuestionPage() {
       setSubmittingAnswer(true);
 
       const res = await fetch(
-        `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers`,
+        `https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/answers`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -159,7 +159,7 @@ export default function QuestionPage() {
       setSubmittingComments((prev) => ({ ...prev, [answerId]: true }));
 
       const res = await fetch(
-        `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/comments`,
+        `https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/answers/${answerId}/comments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -199,7 +199,7 @@ export default function QuestionPage() {
       setVoteLoading((prev) => ({ ...prev, [answerId]: true }));
 
       const res = await fetch(
-        `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/vote`,
+        `https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/answers/${answerId}/vote`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -237,7 +237,7 @@ export default function QuestionPage() {
       setAcceptLoading(true);
 
       const res = await fetch(
-        `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${answerId}/accept`,
+        `https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/answers/${answerId}/accept`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -251,7 +251,7 @@ export default function QuestionPage() {
       }
 
       const aRes = await fetch(
-        `https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/answers/${questionId}`,
+        `https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/answers/${questionId}`,
         { credentials: "include" }
       );
 

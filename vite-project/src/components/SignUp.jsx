@@ -53,7 +53,7 @@ export default function SignUp() {
     if (Object.keys(errs).length === 0) {
       setSubmitting(true);
       try {
-        const res = await fetch("https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/auth/register", {
+        const res = await fetch("https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),

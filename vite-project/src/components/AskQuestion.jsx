@@ -33,7 +33,7 @@ const AskQuestion = ({ onPost }) => {
 
     try {
       const res = await fetch(
-        "https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/tags/generate",
+        "https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/tags/generate",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -79,7 +79,7 @@ const AskQuestion = ({ onPost }) => {
 
     try {
       const res = await fetch(
-        "https://stackit-a-minimal-qna-forum-platform-production.up.railway.app/api/questions",
+        "https://stackit-a-minimal-qna-forum-platform-2.onrender.com/api/questions",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
