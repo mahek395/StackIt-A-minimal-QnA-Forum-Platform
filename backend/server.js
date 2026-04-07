@@ -17,9 +17,12 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-  origin: "*",
+  origin: [
+    "http://localhost:5173",
+    "https://stack-it-a-minimal-qn-a-forum-platf-amber.vercel.app"
+  ],
   credentials: true
-}))
+}));
 
 // Add this middleware to log requests and cookies
 app.use((req, res, next) => {
