@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-  origin: "https://stack-it-a-minimal-qn-a-forum-platf-umber.vercel.app",
+  origin: "*",
   credentials: true
 }))
 
